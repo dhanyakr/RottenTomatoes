@@ -16,6 +16,7 @@
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
 @property (nonatomic,strong) NSMutableArray *movies;
 - (void)onRefresh;
+@property (strong, nonatomic) IBOutlet UIView *errorView;
 @end
 
 @implementation MoviesViewController
@@ -81,16 +82,24 @@
 
     NSURL *url = [NSURL URLWithString:@"https://gist.githubusercontent.com/timothy1ee/d1778ca5b944ed974db0/raw/489d812c7ceeec0ac15ab77bf7c47849f2d1eb2b/gistfile1.json"];
     
-    NSLog(@"Response %@", url);
+    // NSLog(@"Response %@", url);
     NSURLRequest *request = [[NSURLRequest alloc] initWithURL:url];
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
-        NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        self.movies = responseDictionary[@"movies"];
-        [self.movieTableView reloadData];
+
+        if (connectionError) {
+            // add the new view as a subview to an existing one (e.g. self.view)
+            [self.view addSubview:self.errorView];
+            
+        } else {
+            NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+            self.movies = responseDictionary[@"movies"];
+            [self.movieTableView reloadData];
         
+        
+        }
         // End refreshing control
         [self.refreshControl endRefreshing];
-        
+
         // Stop the loading animation
         [spinner stopAnimating];
     }];
